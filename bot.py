@@ -18,7 +18,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 load_dotenv()
 
+# ক্লাউড (Railway/Koyeb) এবং লোকাল পিসি উভয় জায়গা থেকেই যেন টোকেন নিতে পারে
 TOKEN = os.getenv("DISCORD_TOKEN")
+
 DATABASE = "siamuu_xp.db"
 
 MESSAGE_XP_MIN = 15
@@ -27,6 +29,9 @@ MESSAGE_COOLDOWN = 60
 
 VOICE_XP_PER_MINUTE = 5
 DAILY_XP = 100
+
+# Level-up announcement channel ID
+LEVEL_UP_CHANNEL_ID = 1344642255415279656
 
 # Level reward roles configuration
 ROLE_REWARDS = {
@@ -134,7 +139,6 @@ async def generate_level_up_card(member, old_level, new_level, rank_num, current
     draw = ImageDraw.Draw(card)
 
     radius = 30
-    # সঠিক কাঠামোর ভেতরে ব্যাকগ্রাউন্ড ও বর্ডার ড্র করা যাতে বাইরে না যায়
     draw.rounded_rectangle([(2, 2), (width - 3, height - 3)], radius, fill=(15, 15, 22, 255))
     draw.rounded_rectangle([(2, 2), (width - 3, height - 3)], radius, outline=(0, 180, 255, 120), width=2)
 
@@ -177,18 +181,15 @@ async def generate_level_up_card(member, old_level, new_level, rank_num, current
     draw.text((185, 38), "LEVEL UP!", fill=(0, 220, 255), font=font_title)
     draw.text((185, 80), f"{username}", fill=(200, 200, 210), font=font_name)
 
-    # লেভেল আপ বক্স
     draw.rounded_rectangle([(445, 35), (595, 105)], 20, fill=(25, 25, 35, 255))
     
     draw.text((462, 50), str(old_level), fill=(130, 130, 140), font=font_med)
     draw.text((502, 48), "->", fill=(0, 162, 255), font=font_med)
     draw.text((538, 46), str(new_level), fill=(0, 255, 120), font=font_bold)
 
-    # র‍্যাংক ব্যাজ
     draw.rounded_rectangle([(615, 35), (715, 105)], 20, fill=(35, 25, 45, 255))
     draw.text((635, 48), f"#{rank_num}", fill=(255, 180, 0), font=font_bold)
 
-    # প্রোগ্রেস বার (ফিক্সড ও স্মিথ রেন্ডারিং)
     bar_x, bar_y, bar_w, bar_h = 185, 145, 530, 18
     draw.rounded_rectangle([(bar_x, bar_y), (bar_x + bar_w, bar_y + bar_h)], 9, fill=(30, 30, 40, 255))
     
@@ -200,7 +201,7 @@ async def generate_level_up_card(member, old_level, new_level, rank_num, current
     if needed <= 0:
         pct = 1.0
     else:
-        pct = max(0.05, min(1.0, gained / needed)) # মিনিমাম ৫% ভিজুয়াল ফিল রাখবে যাতে সবসময় বার দেখা যায়
+        pct = max(0.05, min(1.0, gained / needed))
         
     filled_w = int(bar_w * pct)
     if filled_w > 9:
@@ -214,7 +215,7 @@ async def generate_level_up_card(member, old_level, new_level, rank_num, current
     return buffer
 
 
-async def award_xp(member, amount, announce_channel=None):
+async def award_xp(member, amount):
     if member.bot or member.guild is None:
         return
 
@@ -237,16 +238,7 @@ async def award_xp(member, amount, announce_channel=None):
     await db.commit()
 
     if new_level > old_level:
-        channel = announce_channel or member.guild.system_channel
-
-        if channel is None:
-            channel = next(
-                (
-                    c for c in member.guild.text_channels
-                    if c.permissions_for(member.guild.me).send_messages
-                ),
-                None
-            )
+        channel = member.guild.get_channel(LEVEL_UP_CHANNEL_ID)
 
         if channel:
             rank_num = await get_user_rank(member.guild.id, member.id)
@@ -317,8 +309,7 @@ async def on_message(message):
 
         await award_xp(
             message.author,
-            amount,
-            message.channel
+            amount
         )
 
     await bot.process_commands(message)
@@ -544,7 +535,7 @@ async def givexp(
         )
         return
 
-    new_xp, new_level = await award_xp(member, amount, interaction.channel)
+    new_xp, new_level = await award_xp(member, amount)
 
     embed = discord.Embed(
         title="✨ XP ADDED SUCCESSFULLY",
@@ -634,7 +625,7 @@ async def on_ready():
     print("SIAMUUU BOT IS ONLINE!")
     print(f"Bot: {bot.user}")
     print(f"Servers: {len(bot.guilds)}")
-    print("XP System: ACTIVE (Enhanced PNG Card Enabled)")
+    print("XP System: ACTIVE (Fixed Channel ID & PNG Card)")
     print("=" * 40)
 
 
@@ -643,6 +634,6 @@ async def on_ready():
 # ==============================
 
 if not TOKEN:
-    raise ValueError("Discord token not found in .env file!")
+    raise ValueError("Discord token not found! Please set DISCORD_TOKEN in environment variables.")
 
 bot.run(TOKEN)
