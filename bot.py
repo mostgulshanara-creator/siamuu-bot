@@ -18,17 +18,17 @@ from PIL import Image, ImageDraw, ImageFont
 
 load_dotenv()
 
-# ক্লাউড (Railway/Koyeb) এবং লোকাল পিসি উভয় জায়গা থেকেই যেন টোকেন নিতে পারে
-TOKEN = os.getenv("DISCORD_TOKEN")
+# ক্লাউড (Railway/Koyeb) এবং লোকাল পিসি উভয় জায়গা থেকেই যেন টোকেন নিতে পারে
+TOKEN = "MTU3MjI5MDI3Njc0NjMzNDI1OA.GBFh-N.yb9g0m9w0XZdIl__8aq-0KnE6kzkDPG04F-l1A"
 
 DATABASE = "siamuu_xp.db"
 
-MESSAGE_XP_MIN = 15
-MESSAGE_XP_MAX = 25
-MESSAGE_COOLDOWN = 60
+MESSAGE_XP_MIN = 5
+MESSAGE_XP_MAX = 15
+MESSAGE_COOLDOWN = 30
 
 VOICE_XP_PER_MINUTE = 5
-DAILY_XP = 100
+DAILY_XP = 50
 
 # Level-up announcement channel ID
 LEVEL_UP_CHANNEL_ID = 1344642255415279656
@@ -166,8 +166,8 @@ async def generate_level_up_card(member, old_level, new_level, rank_num, current
     try:
         font_title = ImageFont.truetype("arial.ttf", 32)
         font_name = ImageFont.truetype("arial.ttf", 22)
-        font_med = ImageFont.truetype("arial.ttf", 22)
-        font_bold = ImageFont.truetype("arial.ttf", 36)
+        font_med = ImageFont.truetype("arial.ttf", 24)
+        font_bold = ImageFont.truetype("arial.ttf", 42)  # Bada font size numbers ke liye
     except IOError:
         font_title = ImageFont.load_default()
         font_name = ImageFont.load_default()
@@ -181,14 +181,16 @@ async def generate_level_up_card(member, old_level, new_level, rank_num, current
     draw.text((185, 38), "LEVEL UP!", fill=(0, 220, 255), font=font_title)
     draw.text((185, 80), f"{username}", fill=(200, 200, 210), font=font_name)
 
-    draw.rounded_rectangle([(445, 35), (595, 105)], 20, fill=(25, 25, 35, 255))
+    # Level Box (Bada kiya gaya hai)
+    draw.rounded_rectangle([(430, 25), (600, 115)], 20, fill=(25, 25, 35, 255))
     
-    draw.text((462, 50), str(old_level), fill=(130, 130, 140), font=font_med)
-    draw.text((502, 48), "->", fill=(0, 162, 255), font=font_med)
-    draw.text((538, 46), str(new_level), fill=(0, 255, 120), font=font_bold)
+    draw.text((445, 48), str(old_level), fill=(130, 130, 140), font=font_bold)
+    draw.text((495, 52), "->", fill=(0, 162, 255), font=font_med)
+    draw.text((535, 42), str(new_level), fill=(0, 255, 120), font=font_bold)
 
-    draw.rounded_rectangle([(615, 35), (715, 105)], 20, fill=(35, 25, 45, 255))
-    draw.text((635, 48), f"#{rank_num}", fill=(255, 180, 0), font=font_bold)
+    # Rank Box (Bada kiya gaya hai)
+    draw.rounded_rectangle([(615, 25), (725, 115)], 20, fill=(35, 25, 45, 255))
+    draw.text((638, 42), f"#{rank_num}", fill=(255, 180, 0), font=font_bold)
 
     bar_x, bar_y, bar_w, bar_h = 185, 145, 530, 18
     draw.rounded_rectangle([(bar_x, bar_y), (bar_x + bar_w, bar_y + bar_h)], 9, fill=(30, 30, 40, 255))
