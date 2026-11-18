@@ -19,7 +19,7 @@ from PIL import Image, ImageDraw, ImageFont
 load_dotenv()
 
 # ক্লাউড (Railway/Koyeb) এবং লোকাল পিসি উভয় জায়গা থেকেই যেন টোকেন নিতে পারে
-TOKEN = "MTU3MjI5MDI3Njc0NjMzNDI1OA.GBFh-N.yb9g0m9w0XZdIl__8aq-0KnE6kzkDPG04F-l1A"
+TOKEN ="MTU3MjI5MDI3Njc0NjMzNDI1OA.Gh_qoX.exh-TgvVHC-1KkKy2IIQa8tGgTC7Apm5dwhurk"
 
 DATABASE = "siamuu_xp.db"
 
